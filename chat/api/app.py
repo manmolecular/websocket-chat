@@ -16,12 +16,14 @@ from chat.utils.config import JWTConfiguration
 log = getLogger(__name__)
 
 
-class Register(web.View):
-    async def get(self):
+class Register:
+    @staticmethod
+    async def get(request):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "register.html")
 
-    async def post(self):
-        credentials = await self.request.json()
+    @staticmethod
+    async def post(request):
+        credentials = await request.json()
         username = credentials.get("username")
         password = credentials.get("password")
         if DatabaseCrud.check_user_exists(username):
@@ -34,12 +36,14 @@ class Register(web.View):
         )
 
 
-class Login(web.View):
-    async def get(self):
+class Login:
+    @staticmethod
+    async def get(request):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "login.html")
 
-    async def post(self):
-        credentials = await self.request.json()
+    @staticmethod
+    async def post(request):
+        credentials = await request.json()
         username = credentials.get("username")
         password = credentials.get("password")
         if not DatabaseCrud.check_credentials(username, password):
@@ -63,9 +67,16 @@ class Login(web.View):
         return response
 
 
-class Home(web.View):
-    async def get(self):
+class Home:
+    @staticmethod
+    async def get(request):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "home.html")
+
+
+class HealthCheck:
+    @staticmethod
+    async def get(request):
+        return web.json_response({"status": "success", "message": "application is up"})
 
 
 class Chat:
@@ -75,10 +86,10 @@ class Chat:
 
     @staticmethod
     @login_required
-    async def chat(request):
+    async def get(request):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "chat.html")
 
-    async def send_to_all(self, username: str, message: str):
+    async def __send_to_all(self, username: str, message: str):
         chat_message = f"{datetime.now():%H:%M:%S} – {username}: {message}"
         self.session_history.append(chat_message)
         DatabaseCrud.save_message(username, message, date_time=datetime.now())
@@ -93,7 +104,7 @@ class Chat:
 
         username = request.user
 
-        await self.send_to_all("server", f"{username} joined!")
+        await self.__send_to_all("server", f"{username} joined!")
 
         for chat_message in self.session_history:
             await client.send_str(chat_message)
@@ -103,7 +114,7 @@ class Chat:
         try:
             async for message in client:
                 if message.type == WSMsgType.TEXT:
-                    await self.send_to_all(username, message.data)
+                    await self.__send_to_all(username, message.data)
                 elif message.type == WSMsgType.ERROR:
                     log.error(
                         f"WebSocket connection closed with exception: {client.exception()}"
@@ -111,20 +122,26 @@ class Chat:
         finally:
             self.session_websockets.remove(client)
 
-        await self.send_to_all("server", f"{username} left")
+        await self.__send_to_all("server", f"{username} left")
 
 
 def create_app():
-    chat = Chat()
+    chat_handler = Chat()
 
     app = Application(middlewares=[auth_middleware])
     app.add_routes(
         routes=[
-            web.view("/register", Register),
-            web.view("/login", Login),
-            web.get("/", Home),
-            web.get("/chat", chat.chat),
-            web.get("/chat/ws", chat.websockets),
+            # Render
+            web.get("/register", Register.get),
+            web.get("/login", Login.get),
+            web.get("/chat", chat_handler.get),
+            web.get("/", Home.get),
+            # Api
+            web.post("/api/register", Register.post),
+            web.post("/api/login", Login.post),
+            web.get("/api/chat/ws", chat_handler.websockets),
+            web.get("/api/health", HealthCheck.get),
+            # Static
             web.static("/static/js", path=DefaultPaths.STATIC_JS, append_version=True),
         ]
     )

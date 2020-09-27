@@ -24,7 +24,7 @@ async def auth_middleware(app, handler):
 
 
 def login_required(func):
-    def wrapper(request):
+    def wrapper(request, *args, **kwargs):
         if not request.user:
             return web.Response(text="Auth required", status=401)
         return func(request)
