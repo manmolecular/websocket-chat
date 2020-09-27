@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function(event) {
     if (window.location.pathname == '/chat') {
-        // TODO: Reload with header
         var ws = `ws://${window.location.hostname}:${window.location.port}/chat/ws`;
         var container = document.getElementById('chat-container');
         var socket = new WebSocket(ws);
@@ -24,8 +23,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
     if (window.location.pathname == '/register') {
         document.getElementById('register-button').addEventListener('click', function() {
-            var username = document.getElementById('username');
-            var password = document.getElementById('password');
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
             var options = {
                 method: 'POST',
                 body: JSON.stringify({"username": username, "password": password}),
@@ -45,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
     if (window.location.pathname == '/login') {
         document.getElementById('login-button').addEventListener('click', function() {
-            var username = document.getElementById('username');
-            var password = document.getElementById('password');
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
             var options = {
                 method: 'POST',
                 body: JSON.stringify({"username": username, "password": password}),
@@ -56,10 +55,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
             }
             fetch('/login', options)
                 .then(res => res.json())
-                .then(json => json['status'])
-                .then(status => {
-                    if (status === 'success') {
-                        window.location.href = '/chat';
+                .then(json => {
+                    if (json['status'] === 'success') {
+                        window.location.href = '/';
                     }
                 })
         })

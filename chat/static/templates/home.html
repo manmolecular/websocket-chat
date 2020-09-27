@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8">
     <title>WebSocket Chat</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="/static/js/chat.js"></script>
   </head>
   <body>
-    <div class="container">
-      <h1>Please login</h1>
+    <div class="container" id="container">
+      <h1>WebSocket Chat</h1>
       <br>
-      <input id="username" type="text" placeholder="Username" name="username" value="">
-      <input id="password" type="password" placeholder="Password" name="password" value="">
-      <input id="login-button" class="dark" type="submit" value="Login">
+      <p>Welcome to WebSocket simple example application</p>
+      <p><a href="/register">Register, </a><a href="/login">login</a> or <a href="/chat">join the chat</a></p>
     </div>
   </body>
 </html>

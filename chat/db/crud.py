@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from chat.db import models
 from chat.db.base import SessionLocal
+from hashlib import sha256
 
 
 def object_as_dict(obj):
@@ -19,8 +20,9 @@ class DatabaseCrud:
         username: str, password: str, db: Session = SessionLocal(), *args, **kwargs
     ) -> None:
         try:
-            db_user = models.User(username=username, password=password)
-            print(db_user)
+            db_user = models.User(
+                username=username, password=sha256(password.encode("utf-8")).hexdigest()
+            )
             db.add(db_user)
             db.commit()
         except:
@@ -29,14 +31,33 @@ class DatabaseCrud:
             db.close()
 
     @staticmethod
+    def check_user_exists(
+        username: str, db: Session = SessionLocal(), *args, **kwargs
+    ) -> bool:
+        try:
+            db_user = (
+                db.query(models.User).filter(models.User.username == username).first()
+            )
+            if db_user:
+                return True
+        except:
+            return False
+        finally:
+            db.close()
+
+    @staticmethod
     def check_credentials(
         username: str, password: str, db: Session = SessionLocal(), *args, **kwargs
     ) -> bool:
         try:
-            db_user = db.query(models.User).filter(models.User.username == username).first()
-            print(db_user)
+            db_user = (
+                db.query(models.User).filter(models.User.username == username).first()
+            )
             if db_user:
-                return db_user.password == password and db_user.username == username
+                return (
+                    db_user.password == sha256(password.encode("utf-8")).hexdigest()
+                    and db_user.username == username
+                )
         except:
             return False
         finally:
@@ -55,14 +76,11 @@ class DatabaseCrud:
             if not message or not username:
                 return
             user = (
-                db.query(models.User)
-                .filter(models.User.username == username)
-                .first()
+                db.query(models.User).filter(models.User.username == username).first()
             )
             if not user:
                 return
             user_id = user.user_id
-            print(user_id)
             db_message = models.Message(
                 owner_id=user_id, message=message, date_time=date_time
             )

@@ -21,12 +21,16 @@ class Register(web.View):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "register.html")
 
     async def post(self):
-        credentials = await self.request.post()
+        credentials = await self.request.json()
         username = credentials.get("username")
         password = credentials.get("password")
+        if DatabaseCrud.check_user_exists(username):
+            return web.json_response(
+                {"status": "error", "message": "User already exists"}, status=400
+            )
         DatabaseCrud.create_user(username, password)
         return web.json_response(
-            {"status": "success", "message": "successfully registered"}
+            {"status": "success", "message": "user successfully created"}
         )
 
 
@@ -35,11 +39,13 @@ class Login(web.View):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "login.html")
 
     async def post(self):
-        credentials = await self.request.post()
+        credentials = await self.request.json()
         username = credentials.get("username")
         password = credentials.get("password")
         if not DatabaseCrud.check_credentials(username, password):
-            return web.Response(text="Wrong username or password", status=400)
+            return web.json_response(
+                {"status": "error", "message": "Wrong username or password"}, status=400
+            )
         payload = {
             "user_id": username,
             "exp": datetime.utcnow()
@@ -49,12 +55,17 @@ class Login(web.View):
             payload, JWTConfiguration.JWT_SECRET, JWTConfiguration.JWT_ALGORITHM
         )
         response = web.json_response(
-            {"status": "success", "message": "successfully logged in",}
+            {"status": "success", "message": "successfully logged in"}
         )
         response.set_cookie(
             name="access_token", value=jwt_token.decode("utf-8"), httponly="True"
         )
         return response
+
+
+class Home(web.View):
+    async def get(self):
+        return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "home.html")
 
 
 class Chat:
@@ -66,10 +77,6 @@ class Chat:
     @login_required
     async def chat(request):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "chat.html")
-
-    @staticmethod
-    async def home(request):
-        return web.HTTPFound("/chat")
 
     async def send_to_all(self, username: str, message: str):
         chat_message = f"{datetime.now():%H:%M:%S} – {username}: {message}"
@@ -115,7 +122,7 @@ def create_app():
         routes=[
             web.view("/register", Register),
             web.view("/login", Login),
-            web.get("/", chat.home),
+            web.get("/", Home),
             web.get("/chat", chat.chat),
             web.get("/chat/ws", chat.websockets),
             web.static("/static/js", path=DefaultPaths.STATIC_JS, append_version=True),
