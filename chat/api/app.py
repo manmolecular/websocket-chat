@@ -3,7 +3,6 @@ from collections import deque
 from datetime import datetime, timedelta
 from logging import getLogger
 
-import jwt
 from aiohttp import WSMsgType
 from aiohttp import web
 from aiohttp.web_app import Application
@@ -11,7 +10,7 @@ from aiohttp.web_app import Application
 from chat.db.crud import DatabaseCrud
 from chat.middlewares.auth import auth_middleware, login_required
 from chat.utils.config import DefaultPaths
-from chat.utils.config import JWTConfiguration
+from chat.middlewares.auth import get_token
 
 log = getLogger(__name__)
 
@@ -32,7 +31,7 @@ class Register:
             )
         DatabaseCrud.create_user(username, password)
         return web.json_response(
-            {"status": "success", "message": "user successfully created"}
+            {"status": "success", "message": "User successfully created"}
         )
 
 
@@ -50,19 +49,9 @@ class Login:
             return web.json_response(
                 {"status": "error", "message": "Wrong username or password"}, status=400
             )
-        payload = {
-            "user_id": username,
-            "exp": datetime.utcnow()
-            + timedelta(seconds=JWTConfiguration.JWT_EXP_DELTA_SECONDS),
-        }
-        jwt_token = jwt.encode(
-            payload, JWTConfiguration.JWT_SECRET, JWTConfiguration.JWT_ALGORITHM
-        )
+        jwt_token = get_token(username)
         response = web.json_response(
-            {"status": "success", "message": "successfully logged in"}
-        )
-        response.set_cookie(
-            name="access_token", value=jwt_token.decode("utf-8"), httponly="True"
+            {"status": "success", "message": "Successfully logged in", "token": jwt_token}
         )
         return response
 
@@ -76,7 +65,7 @@ class Home:
 class HealthCheck:
     @staticmethod
     async def get(request):
-        return web.json_response({"status": "success", "message": "application is up"})
+        return web.json_response({"status": "success", "message": "Application is up"})
 
 
 class Chat:
