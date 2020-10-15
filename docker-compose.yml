@@ -4,7 +4,7 @@ services:
   db:
     container_name: chat-db
     image: postgres:alpine
-    restart: unless-stopped
+    restart: on-failure
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
@@ -21,6 +21,19 @@ services:
       - postgres:/data/postgres
     networks:
       - postgres
+  redis:
+    container_name: chat-storage
+    image: redis:alpine
+    restart: on-failure
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    networks:
+      - redis
   server:
     container_name: chat-app
     image: chat-app:1.0
@@ -33,6 +46,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_HOST: ${POSTGRES_HOST:-chat-db}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      REDIS_HOST: ${REDIS_HOST:-chat-storage}
     build:
       context: .
       target: websocket-chat
@@ -46,8 +60,11 @@ services:
       - "8080:8080"
     networks:
       - postgres
+      - redis
 networks:
   postgres:
+    driver: bridge
+  redis:
     driver: bridge
 volumes:
     postgres:

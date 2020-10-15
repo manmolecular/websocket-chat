@@ -22,3 +22,9 @@ class JWTConfiguration:
     JWT_SECRET = "".join(choices(ascii_uppercase + digits, k=32))
     JWT_ALGORITHM = "HS256"
     JWT_EXP_DELTA_SECONDS = 60 * 15
+
+
+class CacheValues:
+    REDIS_EXP = JWTConfiguration.JWT_EXP_DELTA_SECONDS
+    # REDIS_EXP = 10
+    REDIS_HOST = environ.get("REDIS_HOST", default="localhost")

@@ -1,6 +1,6 @@
 from asyncio import wait
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime
 from logging import getLogger
 
 from aiohttp import WSMsgType
@@ -9,8 +9,10 @@ from aiohttp.web_app import Application
 
 from chat.db.crud import DatabaseCrud
 from chat.middlewares.auth import auth_middleware, login_required
-from chat.utils.config import DefaultPaths
+from chat.middlewares.auth import cache
+from chat.middlewares.auth import get_jti
 from chat.middlewares.auth import get_token
+from chat.utils.config import DefaultPaths
 
 log = getLogger(__name__)
 
@@ -49,10 +51,13 @@ class Login:
             return web.json_response(
                 {"status": "error", "message": "Wrong username or password"}, status=400
             )
-        jwt_token = get_token(username)
+        jti = get_jti()
+        jwt_token = get_token(username, jti)
+        cache.set(key=username, value=jti)
         response = web.json_response(
-            {"status": "success", "message": "Successfully logged in", "token": jwt_token}
+            {"status": "success", "message": "Successfully logged in", "token": jwt_token, "username": username}
         )
+        response.set_cookie(name="username", value=username, httponly='True')
         return response
 
 
@@ -69,14 +74,16 @@ class HealthCheck:
 
 
 class Chat:
-    def __init__(self):
-        self.session_history = deque(maxlen=10)
-        self.session_websockets = []
-
     @staticmethod
     @login_required
     async def get(request):
         return web.FileResponse(path=DefaultPaths.STATIC_TEMPLATES / "chat.html")
+
+
+class WebSockets:
+    def __init__(self):
+        self.session_history = deque(maxlen=10)
+        self.session_websockets = []
 
     async def __send_to_all(self, username: str, message: str):
         chat_message = f"{datetime.now():%H:%M:%S} – {username}: {message}"
@@ -87,11 +94,11 @@ class Chat:
         if futures:
             await wait(futures)
 
-    async def websockets(self, request):
+    async def get(self, request):
         client = web.WebSocketResponse()
         await client.prepare(request)
 
-        username = request.user
+        username = request.cookies.get("username")
 
         await self.__send_to_all("server", f"{username} joined!")
 
@@ -115,7 +122,7 @@ class Chat:
 
 
 def create_app():
-    chat_handler = Chat()
+    ws = WebSockets()
 
     app = Application(middlewares=[auth_middleware])
     app.add_routes(
@@ -123,12 +130,12 @@ def create_app():
             # Render
             web.get("/register", Register.get),
             web.get("/login", Login.get),
-            web.get("/chat", chat_handler.get),
+            web.get("/chat", Chat.get),
             web.get("/", Home.get),
             # Api
             web.post("/api/register", Register.post),
             web.post("/api/login", Login.post),
-            web.get("/api/chat/ws", chat_handler.websockets),
+            web.get("/api/chat/ws", ws.get),
             web.get("/api/health", HealthCheck.get),
             # Static
             web.static("/static/js", path=DefaultPaths.STATIC_JS, append_version=True),
