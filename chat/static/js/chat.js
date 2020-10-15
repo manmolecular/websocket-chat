@@ -45,7 +45,8 @@ window.addEventListener('hashchange', function(event) {
         const socket = new WebSocket(ws);
         socket.onmessage = function(event) {
             const element = document.createElement('div');
-            const text = document.createTextNode(event.data);
+            message = JSON.parse(event.data);
+            const text = document.createTextNode(`${message.user} (${message.time}): ${message.message}`);
             element.appendChild(text);
             container.appendChild(element);
         };
@@ -58,7 +59,8 @@ window.addEventListener('hashchange', function(event) {
         };
         document.getElementById('send-button').addEventListener('click', function() {
             const messageFieldElem = document.getElementById('message-field');
-            socket.send(messageFieldElem.value);
+            message = JSON.stringify({'message': messageFieldElem.value, 'token': accessToken});
+            socket.send(message);
         });
     }
     if (window.location.hash === '#register') {

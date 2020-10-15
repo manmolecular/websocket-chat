@@ -10,9 +10,10 @@ from aiohttp.web_app import Application
 from chat.db.crud import DatabaseCrud
 from chat.middlewares.auth import auth_middleware, login_required
 from chat.middlewares.auth import cache
-from chat.middlewares.auth import get_jti
-from chat.middlewares.auth import get_token
+from chat.middlewares.auth import get_token, decode_token, get_jti
 from chat.utils.config import DefaultPaths
+
+from json import dumps, loads
 
 log = getLogger(__name__)
 
@@ -57,7 +58,6 @@ class Login:
         response = web.json_response(
             {"status": "success", "message": "Successfully logged in", "token": jwt_token, "username": username}
         )
-        response.set_cookie(name="username", value=username, httponly='True')
         return response
 
 
@@ -86,7 +86,11 @@ class WebSockets:
         self.session_websockets = []
 
     async def __send_to_all(self, username: str, message: str):
-        chat_message = f"{datetime.now():%H:%M:%S} – {username}: {message}"
+        chat_message = dumps({
+            "user": username,
+            "message": message,
+            "time": f"{datetime.now():%H:%M:%S}"
+        })
         self.session_history.append(chat_message)
         DatabaseCrud.save_message(username, message, date_time=datetime.now())
 
@@ -98,23 +102,27 @@ class WebSockets:
         client = web.WebSocketResponse()
         await client.prepare(request)
 
-        username = request.cookies.get("username")
-
-        await self.__send_to_all("server", f"{username} joined!")
-
         for chat_message in self.session_history:
             await client.send_str(chat_message)
 
         self.session_websockets.append(client)
 
+        username = "unknown"
+
         try:
             async for message in client:
                 if message.type == WSMsgType.TEXT:
-                    await self.__send_to_all(username, message.data)
+                    json_message = loads(message.data.encode("utf-8"))
+                    token = json_message.get("token")
+                    username = decode_token(token).get("name")
+                    message = json_message.get("message")
+                    await self.__send_to_all(username, message)
                 elif message.type == WSMsgType.ERROR:
                     log.error(
                         f"WebSocket connection closed with exception: {client.exception()}"
                     )
+        except:
+            self.session_websockets.remove(client)
         finally:
             self.session_websockets.remove(client)
 
