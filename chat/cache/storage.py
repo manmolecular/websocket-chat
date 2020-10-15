@@ -7,9 +7,7 @@ from chat.utils.config import CacheValues
 
 class RedisCache:
     def __init__(
-        self,
-        host: str = CacheValues.REDIS_HOST,
-        expire: int = CacheValues.REDIS_EXP,
+        self, host: str = CacheValues.REDIS_HOST, expire: int = CacheValues.REDIS_EXP,
     ):
         self.options = dict(expire=expire)
         self.redis = Redis(host=host)

@@ -35,9 +35,13 @@ async def auth_middleware(app, handler):
                 jti = payload.get("jti")
                 jti_cache = cache.get(username).decode(encoding="utf-8")
                 if jti != jti_cache:
-                    return web.Response(text="Token is invalid, cache expired or not exists", status=400)
+                    return web.Response(
+                        text="Token is invalid, cache expired or not exists", status=400
+                    )
             except:
-                return web.Response(text="Token is invalid, not found in cache", status=400)
+                return web.Response(
+                    text="Token is invalid, not found in cache", status=400
+                )
             request.user = username
         return await handler(request)
 

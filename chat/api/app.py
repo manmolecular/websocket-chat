@@ -56,7 +56,12 @@ class Login:
         jwt_token = get_token(username, jti)
         cache.set(key=username, value=jti)
         response = web.json_response(
-            {"status": "success", "message": "Successfully logged in", "token": jwt_token, "username": username}
+            {
+                "status": "success",
+                "message": "Successfully logged in",
+                "token": jwt_token,
+                "username": username,
+            }
         )
         return response
 
@@ -86,11 +91,9 @@ class WebSockets:
         self.session_websockets = []
 
     async def __send_to_all(self, username: str, message: str):
-        chat_message = dumps({
-            "user": username,
-            "message": message,
-            "time": f"{datetime.now():%H:%M:%S}"
-        })
+        chat_message = dumps(
+            {"user": username, "message": message, "time": f"{datetime.now():%H:%M:%S}"}
+        )
         self.session_history.append(chat_message)
         DatabaseCrud.save_message(username, message, date_time=datetime.now())
 
