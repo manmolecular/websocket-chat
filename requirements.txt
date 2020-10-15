@@ -2,6 +2,7 @@ aiohttp==3.6.2
 aiohttp-jwt==0.6.1
 aiohttp-security==0.4.0
 aiohttp-session==2.9.0
+argon2-cffi==20.1.0
 async-timeout==3.0.1
 attrs==20.2.0
 cffi==1.14.3

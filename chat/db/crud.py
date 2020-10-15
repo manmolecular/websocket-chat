@@ -1,11 +1,13 @@
 from datetime import datetime
 
+from argon2 import PasswordHasher
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 from chat.db import models
 from chat.db.base import SessionLocal
-from hashlib import sha256
+
+ph = PasswordHasher()
 
 
 def object_as_dict(obj):
@@ -20,9 +22,8 @@ class DatabaseCrud:
         username: str, password: str, db: Session = SessionLocal(), *args, **kwargs
     ) -> None:
         try:
-            db_user = models.User(
-                username=username, password=sha256(password.encode("utf-8")).hexdigest()
-            )
+            password_hash = ph.hash(password)
+            db_user = models.User(username=username, password=password_hash)
             db.add(db_user)
             db.commit()
         except:
@@ -54,10 +55,7 @@ class DatabaseCrud:
                 db.query(models.User).filter(models.User.username == username).first()
             )
             if db_user:
-                return (
-                    db_user.password == sha256(password.encode("utf-8")).hexdigest()
-                    and db_user.username == username
-                )
+                return ph.verify(hash=db_user.password, password=password)
         except:
             return False
         finally:
