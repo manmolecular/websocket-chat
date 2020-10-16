@@ -4,6 +4,7 @@ from collections import deque
 from datetime import datetime
 from json import dumps, loads
 
+import aiohttp_csrf
 from aiohttp import WSMsgType
 from aiohttp import web
 from aiohttp.web_app import Application
@@ -13,6 +14,10 @@ from chat.middlewares.auth import auth_middleware, login_required
 from chat.middlewares.auth import cache
 from chat.middlewares.auth import get_token, decode_token, get_jti
 from chat.utils.config import DefaultPaths
+
+FORM_FIELD_NAME = '_csrf_token'
+COOKIE_NAME = 'csrf_token'
+
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -76,6 +81,20 @@ class HealthCheck:
     @staticmethod
     async def get(request):
         return web.json_response({"status": "success", "message": "Application is up"})
+
+
+class Feedback(web.View):
+    async def get(self):
+        token = await aiohttp_csrf.generate_token(self.request)
+        with open(file=DefaultPaths.STATIC_TEMPLATES / "feedback.html", mode="r") as template:
+            body = template.read()
+        body = body.format(field_name=FORM_FIELD_NAME, token=token)
+        return web.Response(body=body.encode("utf-8"), content_type="text/html")
+
+    async def post(self):
+        post = await self.request.post()
+        body = "Thanks! We will send the e-mail to {email}".format(email=post['email'])
+        return web.Response(body=body.encode('utf-8'), content_type='text/html',)
 
 
 class Chat:
@@ -148,8 +167,21 @@ class WebSockets:
         await self.__send_to_all("server", f"User {username} left the server")
 
 
+@web.middleware
+async def csrf(request, handler):
+    if handler.__name__ == "Feedback":
+        handler = aiohttp_csrf.csrf_protect(handler=handler)
+    try:
+        return await handler(request)
+    except TypeError:
+        return web.HTTPForbidden()
+
+
 def create_app():
     ws = WebSockets()
+
+    csrf_policy = aiohttp_csrf.policy.FormPolicy(FORM_FIELD_NAME)
+    csrf_storage = aiohttp_csrf.storage.CookieStorage(COOKIE_NAME)
 
     app = Application(middlewares=[auth_middleware])
     app.add_routes(
@@ -166,7 +198,11 @@ def create_app():
             web.get("/api/health", HealthCheck.get),
             # Static
             web.static("/static/js", path=DefaultPaths.STATIC_JS, append_version=True),
+            # Feedback
+            web.view("/feedback", Feedback)
         ]
     )
 
+    aiohttp_csrf.setup(app, policy=csrf_policy, storage=csrf_storage)
+    app.middlewares.append(csrf)
     return app
