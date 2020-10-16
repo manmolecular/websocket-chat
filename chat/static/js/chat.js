@@ -27,7 +27,6 @@ fetch = function(url, options = {}) {
  * @return {null}
  */
 loadPage = function(page = '', method = 'GET', prefix = '') {
-    const container = document.getElementById('home-container');
     const options = {
         method: method,
     };
@@ -35,9 +34,14 @@ loadPage = function(page = '', method = 'GET', prefix = '') {
         prefix = prefix + '/'
     }
     fetch('/' + prefix + page, options)
-        .then((res) => res.text())
-        .then((html) => {
-            container.innerHTML = html;
+        .then(function(response) {
+            if (response.ok) {
+                return response.text()
+            }
+            return Promise.reject(`Response status is ${response.status}, not available`);
+        })
+        .then((text) => {
+            document.body.innerHTML = text;
             window.location.hash = '#' + page;
         });
 }
@@ -61,8 +65,9 @@ window.addEventListener('hashchange', function(event) {
             loadPage();
             break;
         case '#logout':
+            accessToken = null;
             loadPage();
-            breal;
+            break;
         case '#feedback':
             // nothing
             break;

@@ -107,12 +107,12 @@ class Feedback(web.View):
         with open(file=DefaultPaths.STATIC_TEMPLATES / "feedback.html", mode="r") as template:
             body = template.read()
         body = body.format(field_name=FORM_FIELD_NAME, token=token)
-        return web.Response(body=body.encode("utf-8"), content_type="text/html")
+        return web.Response(text=body, content_type="text/html")
 
     async def post(self):
         post = await self.request.post()
         body = 'Thanks! We will send the e-mail to {email}<br><span>go to the <a href="/">home page</a></span>'.format(email=post['email'])
-        return web.Response(body=body.encode('utf-8'), content_type='text/html',)
+        return web.Response(text=body, content_type="text/html")
 
 
 class Chat:

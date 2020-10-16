@@ -29,19 +29,15 @@ async def auth_middleware(app, handler):
             try:
                 payload = decode_token(jwt_token)
             except (jwt.DecodeError, jwt.ExpiredSignatureError):
-                return web.Response(text="Token is invalid, decode error", status=400)
+                return web.HTTPForbidden()
             try:
                 username = payload.get("name")
                 jti = payload.get("jti")
                 jti_cache = cache.get(username).decode(encoding="utf-8")
                 if jti != jti_cache:
-                    return web.Response(
-                        text="Token is invalid, cache expired or not exists", status=400
-                    )
+                    return web.HTTPUnauthorized()
             except:
-                return web.Response(
-                    text="Token is invalid, not found in cache", status=400
-                )
+                return web.HTTPUnauthorized()
             request.user = username
         return await handler(request)
 
@@ -70,7 +66,7 @@ def get_token(username: str, jti: str):
 def login_required(func):
     def wrapper(request, *args, **kwargs):
         if not request.user:
-            return web.Response(text="Auth required", status=401)
+            return web.HTTPUnauthorized()
         return func(request)
 
     return wrapper
