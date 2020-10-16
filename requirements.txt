@@ -1,4 +1,5 @@
 aiohttp==3.6.2
+aiohttp-csrf==0.0.2
 aiohttp-jwt==0.6.1
 aiohttp-security==0.4.0
 aiohttp-session==2.9.0
@@ -13,6 +14,7 @@ multidict==4.7.6
 psycopg2-binary==2.8.6
 pycparser==2.20
 PyJWT==1.7.1
+redis==3.5.3
 six==1.15.0
 SQLAlchemy==1.3.19
 SQLAlchemy-Utils==0.36.8
