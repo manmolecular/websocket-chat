@@ -61,6 +61,10 @@ window.addEventListener('hashchange', function(event) {
             const ws = `ws://${window.location.hostname}:${window.location.port}/api/chat/ws`;
             const container = document.getElementById('chat-container');
             const socket = new WebSocket(ws);
+
+            auth = JSON.stringify({'token': accessToken, 'message': 'auth'})
+            socket.onopen = () => socket.send(auth);
+
             socket.onmessage = function(event) {
                 const element = document.createElement('div');
                 const jsonMessage = JSON.parse(event.data);
@@ -79,7 +83,6 @@ window.addEventListener('hashchange', function(event) {
                 const messageFieldElem = document.getElementById('message-field');
                 const jsonMessage = JSON.stringify({
                     'message': messageFieldElem.value,
-                    'token': accessToken
                 });
                 socket.send(jsonMessage);
             });
@@ -131,7 +134,5 @@ window.addEventListener('hashchange', function(event) {
                     });
             });
             break;
-        default:
-            loadPage();
     }
 });

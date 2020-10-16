@@ -1,7 +1,8 @@
+import logging
 from asyncio import wait
 from collections import deque
 from datetime import datetime
-from logging import getLogger
+from json import dumps, loads
 
 from aiohttp import WSMsgType
 from aiohttp import web
@@ -13,9 +14,8 @@ from chat.middlewares.auth import cache
 from chat.middlewares.auth import get_token, decode_token, get_jti
 from chat.utils.config import DefaultPaths
 
-from json import dumps, loads
-
-log = getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 
 
 class Register:
@@ -102,34 +102,50 @@ class WebSockets:
             await wait(futures)
 
     async def get(self, request):
+        origin = request.headers.get("origin")
+        # FIXME: Dumb validation, fix the scope
+        if not any([app_origin for app_origin in ("0.0.0.0", "localhost") if app_origin in origin]):
+            log.error("Wrong origin")
+            return
+
         client = web.WebSocketResponse()
         await client.prepare(request)
+
+        try:
+            auth = await client.receive_str()
+            auth_message = loads(auth)
+            auth_token = auth_message.get("token")
+            auth_message = auth_message.get("message")
+            assert auth_message == "auth"
+            username = decode_token(auth_token).get("name", "unknown")
+        except:
+            message = "Not authorized"
+            await client.send_str(message)
+            log.error(message)
+            return
+
+        await self.__send_to_all("server", f"User {username} joined the server")
 
         for chat_message in self.session_history:
             await client.send_str(chat_message)
 
         self.session_websockets.append(client)
 
-        username = "unknown"
-
         try:
             async for message in client:
                 if message.type == WSMsgType.TEXT:
-                    json_message = loads(message.data.encode("utf-8"))
-                    token = json_message.get("token")
-                    username = decode_token(token).get("name")
-                    message = json_message.get("message")
-                    await self.__send_to_all(username, message)
+                    message_data = message.data.encode("utf-8")
+                    message_json = loads(message_data)
+                    message_text = message_json.get("message")
+                    await self.__send_to_all(username, message_text)
                 elif message.type == WSMsgType.ERROR:
                     log.error(
                         f"WebSocket connection closed with exception: {client.exception()}"
                     )
-        except:
-            self.session_websockets.remove(client)
         finally:
             self.session_websockets.remove(client)
 
-        await self.__send_to_all("server", f"{username} left")
+        await self.__send_to_all("server", f"User {username} left the server")
 
 
 def create_app():
