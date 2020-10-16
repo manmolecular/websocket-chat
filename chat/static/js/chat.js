@@ -57,6 +57,9 @@ window.addEventListener('hashchange', function(event) {
         case '#home':
             loadPage();
             break;
+        case '#feedback':
+            // nothing
+            break;
         case '#chat':
             const ws = `ws://${window.location.hostname}:${window.location.port}/api/chat/ws`;
             const container = document.getElementById('chat-container');

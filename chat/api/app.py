@@ -93,7 +93,7 @@ class Feedback(web.View):
 
     async def post(self):
         post = await self.request.post()
-        body = "Thanks! We will send the e-mail to {email}".format(email=post['email'])
+        body = 'Thanks! We will send the e-mail to {email}<br><span>go to the <a href="/">home page</a></span>'.format(email=post['email'])
         return web.Response(body=body.encode('utf-8'), content_type='text/html',)
 
 
