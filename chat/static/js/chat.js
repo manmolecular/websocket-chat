@@ -26,12 +26,15 @@ fetch = function(url, options = {}) {
  * @param  {String} page     page URL
  * @return {null}
  */
-loadPage = function(page = '') {
+loadPage = function(page = '', method = 'GET', prefix = '') {
     const container = document.getElementById('home-container');
     const options = {
-        method: 'GET',
+        method: method,
     };
-    fetch('/' + page, options)
+    if (prefix !== '') {
+        prefix = prefix + '/'
+    }
+    fetch('/' + prefix + page, options)
         .then((res) => res.text())
         .then((html) => {
             container.innerHTML = html;
@@ -57,6 +60,9 @@ window.addEventListener('hashchange', function(event) {
         case '#home':
             loadPage();
             break;
+        case '#logout':
+            loadPage();
+            breal;
         case '#feedback':
             // nothing
             break;

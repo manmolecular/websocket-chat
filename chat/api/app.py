@@ -71,6 +71,24 @@ class Login:
         return response
 
 
+class Logout:
+    @staticmethod
+    @login_required
+    async def post(request):
+        jwt_token = request.headers.get("Authorization")
+        if not jwt_token:
+            return web.HTTPUnauthorized()
+        try:
+            jwt_token = jwt_token.split(" ")[1]
+            payload = decode_token(jwt_token)
+            username = payload.get("name")
+            cache.delitem(username)
+        except Exception:
+            return web.json_response({"status": "error", "message": "Token revocation error"}, status=400)
+        finally:
+            return web.json_response({"status": "success", "message": "Successfully logged out"})
+
+
 class Home:
     @staticmethod
     async def get(request):
@@ -194,6 +212,7 @@ def create_app():
             # Api
             web.post("/api/register", Register.post),
             web.post("/api/login", Login.post),
+            web.post("/api/logout", Logout.post),
             web.get("/api/chat/ws", ws.get),
             web.get("/api/health", HealthCheck.get),
             # Static
