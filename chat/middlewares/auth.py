@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
-from random import choice
-from string import ascii_lowercase, ascii_uppercase
 
 import jwt
 from aiohttp import web
 
 from chat.cache.storage import RedisCache
 from chat.utils.config import JWTConfiguration
+from chat.utils.helpers import generate_random
 
 cache = RedisCache()
 
@@ -45,7 +44,7 @@ async def auth_middleware(app, handler):
 
 
 def get_jti(length: int = 32):
-    return "".join(choice(ascii_lowercase + ascii_uppercase) for _ in range(length))
+    return generate_random(length=32)
 
 
 def get_token(username: str, jti: str):

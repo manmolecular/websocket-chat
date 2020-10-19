@@ -1,7 +1,7 @@
 from os import environ
 from pathlib import Path
-from random import choices
-from string import ascii_uppercase, digits
+
+from chat.utils.helpers import generate_random
 
 
 class DefaultPaths:
@@ -19,7 +19,7 @@ class DbValues:
 
 
 class JWTConfiguration:
-    JWT_SECRET = "".join(choices(ascii_uppercase + digits, k=32))
+    JWT_SECRET = generate_random(length=32)
     JWT_ALGORITHM = "HS256"
     JWT_EXP_DELTA_SECONDS = 60 * 15
 
