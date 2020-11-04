@@ -12,6 +12,15 @@ Simple WebSocket chat based on the aiohttp library
 - Deploy: Docker + docker-compose
 - Additional: CSRF with aiohttp
 
+## Features
+- Credentials validation (schemas, register/login handlers)
+- Passwords (hashing, argon2)
+- ORM data sanitization (CRUD operations, models)
+- JWT + JTI with revocation possibility (cache, redis)
+- JavaScript JWT in-memory closure storage
+- WebSockets: origin, auth, CSWSH
+- CSRF (feedback handler)
+
 ## Prepare
 (Optional) Сreate `.env` file with the following variables if you want to overwrite default `docker-compose.yml` environment variables:
 ```
