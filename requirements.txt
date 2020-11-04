@@ -16,6 +16,7 @@ Naked==0.1.31
 psycopg2-binary==2.8.6
 pycparser==2.20
 pycryptodome==3.9.8
+pydantic==1.7.2
 PyJWT==1.7.1
 PyYAML==5.3.1
 redis==3.5.3

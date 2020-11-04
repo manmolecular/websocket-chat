@@ -33,6 +33,21 @@ class Responses:
         return Responses.response(status, message, http_status)
 
     @staticmethod
+    def validation_error(
+        message: str = "", status: str = "error", http_status: int = 400
+    ):
+        """
+        Define user credentials validation error
+        :param message: message error
+        :param status: status explanation
+        :param http_status: http status
+        :return: web.json_response
+        """
+        if not message:
+            message = "Password: 8-30 chars, Username: 1-10 chars, (a-z, A-Z, 0-9)"
+        return Responses.response(status, message, http_status)
+
+    @staticmethod
     def success(
         message: str = "success", status: str = "success", http_status: int = 200
     ):

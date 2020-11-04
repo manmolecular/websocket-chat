@@ -1,9 +1,10 @@
 from chat.db.crud import DatabaseCrud
 from chat.middlewares.auth import cache
+from chat.middlewares.auth import decode_token, check_cache
 from chat.middlewares.auth import get_token, get_jti
+from chat.schemas.user import validate
 from chat.utils.response import Responses
 from chat.utils.serve import Serve
-from chat.middlewares.auth import decode_token, check_cache
 
 
 class Login:
@@ -37,6 +38,8 @@ class Login:
         credentials = await request.json()
         username = credentials.get("username")
         password = credentials.get("password")
+        if not validate(username, password):
+            return Responses.validation_error()
 
         # Check if already logged in
         try:

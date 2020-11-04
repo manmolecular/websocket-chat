@@ -1,4 +1,5 @@
 from chat.db.crud import DatabaseCrud
+from chat.schemas.user import validate
 from chat.utils.response import Responses
 from chat.utils.serve import Serve
 
@@ -32,6 +33,8 @@ class Register:
         credentials = await request.json()
         username = credentials.get("username")
         password = credentials.get("password")
+        if not validate(username, password):
+            return Responses.validation_error()
 
         if DatabaseCrud.check_user_exists(username):
             return Responses.error("User already exists")
