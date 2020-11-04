@@ -22,10 +22,7 @@ def decode_token(jwt_token):
         key=JWTConfiguration.JWT_SECRET,
         algorithms=[JWTConfiguration.JWT_ALGORITHM],
         verify=True,
-        options={
-            "verify_iat": True,
-            "verify_exp": True
-        }
+        options={"verify_iat": True, "verify_exp": True},
     )
 
 
@@ -50,6 +47,7 @@ async def auth_middleware(app, handler):
     :param handler: trigger handler (who call us here?)
     :return: original handler with checked user (we check here, that user data is ok)
     """
+
     async def middleware(request):
         request.user = None
         jwt_token = request.headers.get("Authorization")
@@ -107,6 +105,7 @@ def login_required(func):
     :param func: handler call
     :return: function wrapper
     """
+
     def wrapper(request, *args, **kwargs):
         if not request.user:
             return web.HTTPUnauthorized()

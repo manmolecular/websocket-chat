@@ -23,6 +23,7 @@ class DbValues:
     Define database values.
     Retrieve them from environment (docker, for example).
     """
+
     POSTGRES_HOST = environ.get("POSTGRES_HOST", default="localhost")
     POSTGRES_PORT = environ.get("POSTGRES_PORT", default="5432")
 

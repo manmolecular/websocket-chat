@@ -22,6 +22,7 @@ class DatabaseCrud:
     """
     Handle database
     """
+
     @staticmethod
     def create_user(
         username: str, password: str, db: Session = SessionLocal(), *args, **kwargs

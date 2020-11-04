@@ -56,4 +56,6 @@ class Login:
         jti = get_jti()
         jwt_token = get_token(username, jti)
         cache.set(key=username, value=jti)
-        return Responses.success_token(jwt_token, username, message="Successfully logged in")
+        return Responses.success_token(
+            jwt_token, username, message="Successfully logged in"
+        )

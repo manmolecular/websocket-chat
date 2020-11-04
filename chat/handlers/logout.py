@@ -10,6 +10,7 @@ class Logout:
     """
     Handle logout function
     """
+
     @staticmethod
     @login_required
     async def post(request):

@@ -9,6 +9,7 @@ class RedisCache:
     """
     Redis cache handler
     """
+
     def __init__(
         self, host: str = CacheValues.REDIS_HOST, expire: int = CacheValues.REDIS_EXP,
     ):
