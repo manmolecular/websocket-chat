@@ -15,8 +15,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
-    ports:
-      - 5432:5432
     volumes:
       - postgres:/data/postgres
     networks:
@@ -30,8 +28,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
-    ports:
-      - 6379:6379
     networks:
       - redis
   server:
