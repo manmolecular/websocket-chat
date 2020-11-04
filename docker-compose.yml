@@ -1,0 +1,72 @@
+version: "3.7"
+
+services:
+  db:
+    container_name: chat-db
+    image: postgres:alpine
+    restart: on-failure
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      PGDATA: /data/postgres
+    healthcheck:
+      test: pg_isready -U user
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/data/postgres
+    networks:
+      - postgres
+  redis:
+    container_name: chat-storage
+    image: redis:alpine
+    restart: on-failure
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 6379:6379
+    networks:
+      - redis
+  server:
+    container_name: chat-app
+    image: chat-app:1.0
+    restart: on-failure
+    depends_on:
+      - db
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-}
+      ORIGIN: ${ORIGIN:-localhost}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-chat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_HOST: ${POSTGRES_HOST:-chat-db}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      REDIS_HOST: ${REDIS_HOST:-chat-storage}
+    build:
+      context: .
+      target: websocket-chat
+      dockerfile: docker/Dockerfile
+    healthcheck:
+      test: curl --fail -s http://localhost:8080/api/health || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 8080:8080
+    networks:
+      - postgres
+      - redis
+networks:
+  postgres:
+    driver: bridge
+  redis:
+    driver: bridge
+volumes:
+    postgres:
