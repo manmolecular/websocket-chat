@@ -2,7 +2,6 @@
  * Create token storage closure
  */
 var tokenStorage = function() {
-    var accessToken = null;
     return {
         /**
          * Set token variable
@@ -10,14 +9,14 @@ var tokenStorage = function() {
          * @return {null}
          */
         setToken: function(token) {
-            accessToken = token;
+            localStorage.setItem('accessToken', token);
         },
         /**
          * Get token variable
          * @return {String} token   access token
          */
         getToken: function() {
-            return accessToken;
+            return localStorage.getItem('accessToken');
         }
     };
 }();
