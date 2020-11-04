@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - 5432:5432
     volumes:
       - postgres:/data/postgres
     networks:
@@ -31,7 +31,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "6379:6379"
+      - 6379:6379
     networks:
       - redis
   server:
@@ -41,6 +41,8 @@ services:
     depends_on:
       - db
     environment:
+      JWT_SECRET: ${JWT_SECRET}
+      ORIGIN: ${ORIGIN:-localhost}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-chat}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
       POSTGRES_USER: ${POSTGRES_USER:-user}
@@ -57,7 +59,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "8080:8080"
+      - 8080:8080
     networks:
       - postgres
       - redis
