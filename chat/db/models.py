@@ -5,6 +5,9 @@ from chat.db.base import Base
 
 
 class User(Base):
+    """
+    Define user table in db
+    """
     __tablename__ = "users"
 
     user_id = Column(
@@ -17,6 +20,9 @@ class User(Base):
 
 
 class Message(Base):
+    """
+    Define message table in db
+    """
     __tablename__ = "messages"
 
     message_id = Column(

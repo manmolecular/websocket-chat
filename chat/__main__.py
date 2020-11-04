@@ -7,6 +7,10 @@ from chat.db.base import Base, Engine
 
 
 def main():
+    """
+    Create database engine, create application and run it
+    :return: None
+    """
     Base.metadata.create_all(Engine)
     app = create_app()
     run_app(app)
