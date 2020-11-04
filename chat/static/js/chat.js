@@ -17,6 +17,13 @@ var tokenStorage = function() {
          */
         getToken: function() {
             return localStorage.getItem('accessToken');
+        },
+        /**
+         * Delete item
+         * @return {null}
+         */
+        deleteToken: function() {
+            localStorage.removeItem('accessToken');
         }
     };
 }();
@@ -105,7 +112,7 @@ window.addEventListener('hashchange', function(event) {
             break;
         case '#logout':
             // Remove token, load main page
-            tokenStorage.setToken(null);
+            tokenStorage.deleteToken();
             loadPage();
             break;
         case '#feedback':
