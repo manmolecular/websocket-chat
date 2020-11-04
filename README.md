@@ -16,7 +16,7 @@ Simple WebSocket chat based on the aiohttp library
 - Credentials validation (schemas, register/login handlers)
 - Passwords (hashing, argon2)
 - ORM data sanitization (CRUD operations, models)
-- JWT + JTI with revocation possibility (cache, redis)
+- JWT + JTI with revocation (cache, redis)
 - JavaScript JWT in-memory closure storage
 - WebSockets: origin, auth, CSWSH
 - CSRF (feedback handler)
