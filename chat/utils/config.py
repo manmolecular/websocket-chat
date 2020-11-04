@@ -23,12 +23,13 @@ class DbValues:
     Define database values.
     Retrieve them from environment (docker, for example).
     """
-
-    POSTGRES_DATABASE = environ.get("POSTGRES_DATABASE", default="chat")
-    POSTGRES_PASSWORD = environ.get("POSTGRES_PASSWORD", default="pass")
-    POSTGRES_USER = environ.get("POSTGRES_USER", default="user")
     POSTGRES_HOST = environ.get("POSTGRES_HOST", default="localhost")
     POSTGRES_PORT = environ.get("POSTGRES_PORT", default="5432")
+
+    # Use env only
+    POSTGRES_DATABASE = environ.get("POSTGRES_DATABASE")
+    POSTGRES_PASSWORD = environ.get("POSTGRES_PASSWORD")
+    POSTGRES_USER = environ.get("POSTGRES_USER")
 
 
 class JWTConfiguration:

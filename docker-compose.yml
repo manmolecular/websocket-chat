@@ -41,7 +41,7 @@ services:
     depends_on:
       - db
     environment:
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-}
       ORIGIN: ${ORIGIN:-localhost}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-chat}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
