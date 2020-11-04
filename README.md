@@ -13,7 +13,7 @@ Simple WebSocket chat based on the aiohttp library
 - Additional: CSRF with aiohttp
 
 ## Prepare
-Optional: create `.env` file with the following variables if you want to overwrite default `docker-compose.yml` environment variables:
+(Optional) Сreate `.env` file with the following variables if you want to overwrite default `docker-compose.yml` environment variables:
 ```
 POSTGRES_DATABASE=...
 POSTGRES_PASSWORD=...
